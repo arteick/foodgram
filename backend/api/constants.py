@@ -1,6 +1,0 @@
-# field max_length constants
-MAX_LENGTH_256 = 256
-MAX_LENGTH_150 = 150
-MAX_LENGTH_128 = 128
-MAX_LENGTH_64 = 64
-MAX_LENGTH_32 = 32

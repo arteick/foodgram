@@ -1,11 +1,41 @@
 python manage.py makemigrations && \
 python manage.py migrate && \
 python manage.py collectstatic && \
-cp -r /app/collected_static/. /backend_static/static/
+cp -r /app/collected_static/. /backend_static/static/ && \
+python manage.py createsuperuser && \
 exit
 
+--email t@t.ru --username arteic --first_name arteic --last_name arteic 
+
+
+python manage.py makemigrations && \
+python manage.py migrate && \
+python manage.py collectstatic && \
+cp -r /app/collected_static/. /backend_static/static/ && \
+python manage.py createsuperuser --email t@t.ru --username arteic && \
+exit
 
 
 python manage.py makemigrations && \
 python manage.py migrate && \
 python manage.py runserver
+
+
+
+    location docs/ {
+        alias /static/docs/;
+        try_files $uri $uri/redoc.html;
+    }
+
+
+    path('users/me/avatar/', UserViewSet.as_view(
+        {'put': 'add_avatar', 'delete': 'add_avatar'}
+    )),
+
+
+    username = models.CharField(
+        'Никнейм',
+        max_length=150,
+        unique=True,
+        validators=[UnicodeUsernameValidator],
+    )

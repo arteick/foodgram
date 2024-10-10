@@ -26,6 +26,6 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - ../docs/:/usr/share/nginx/html/docs/
       - static:/static
       - media:/media
