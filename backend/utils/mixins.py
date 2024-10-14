@@ -2,9 +2,9 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
 
-class CustomUpdateModelMixin(object):
+class CustomUpdateModelMixin:
     """
-    Объект всегда может быть обновлён только частично
+    Миксин; PUT работает на частичное обновление
     """
     def update(self, request, *args, **kwargs):
         instance = self.get_object()

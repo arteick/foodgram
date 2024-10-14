@@ -67,7 +67,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         pattern = r'^[\w.@+-]+\Z'
         if not re.match(pattern, value):
             raise serializers.ValidationError(
-                'Имя пользователя содержит запрещённые символы.',
+                {'username': 'Имя пользователя содержит запрещённые символы.'},
             )
         return value
 

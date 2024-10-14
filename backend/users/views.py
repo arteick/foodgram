@@ -27,6 +27,7 @@ class UserViewSet(UserUpdateModelMixin,
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PageNumberAndLimit
+    http_method_names = ['put', 'get', 'post', 'delete']
 
     def get_request_user(self):
         queryset = self.get_queryset()
@@ -87,8 +88,7 @@ class UserViewSet(UserUpdateModelMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
-        if (self.action == 'add_avatar' and self.request.method == 'PUT' or
-           self.action == 'add_avatar' and self.request.method == 'GET'):
+        if self.action == 'add_avatar' and self.request.method != 'DELETE':
             return AvatarSerializer
         if self.action == 'create':
             return CustomUserCreateSerializer

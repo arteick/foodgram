@@ -1,11 +1,18 @@
 from django_filters.filters import BooleanFilter, CharFilter, NumberFilter
 from django_filters.rest_framework import FilterSet
 
-from recipes.models import Recipe, Ingredient
+from recipes.models import Ingredient, Recipe
 
 
 class RecipeFilter(FilterSet):
-    """<Необходимо заполнить>"""
+    """
+    Фильтр для рецптов.
+    Доступные параметры:
+    is_favorited - 0/1,
+    is_in_shopping_cart - 0/1,
+    author - id автора,
+    tags - слаги тегов,
+    """
 
     is_favorited = BooleanFilter(field_name='is_favorited')
     is_in_shopping_cart = BooleanFilter(field_name='is_in_shopping_cart')

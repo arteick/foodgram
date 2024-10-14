@@ -1,17 +1,20 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
+from rest_framework.permissions import SAFE_METHODS
 
-from .filters import RecipeFilter, IngridientFilter
 from utils.mixins import CustomUpdateModelMixin
-from utils.pagination import PageNumberAndLimit
+from .pagination import RecipePageNumberLimit
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag, RecipeIngredient
+from .filters import IngridientFilter, RecipeFilter
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, RecipeShortSerializer,
-                          ShoppingCartSerializer, TagSerializer)
+                          CreateRecipeSerializer, OutputRecipeSerializer,
+                          RecipeShortSerializer, ShoppingCartSerializer,
+                          TagSerializer)
+from rest_framework.decorators import action
 
 User = get_user_model()
 
@@ -92,19 +95,26 @@ class FavoriteViewSet(mixins.CreateModelMixin,
         instance.delete()
 
 
-class RecipeViewSet(CustomUpdateModelMixin,
+class RecipeViewSet(mixins.UpdateModelMixin,
                     mixins.ListModelMixin,
                     mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
                     mixins.DestroyModelMixin,
                     viewsets.GenericViewSet):
     """Рецепты: CRUD"""
-    serializer_class = RecipeSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     queryset = Recipe.objects.all()
+    pagination_class = RecipePageNumberLimit
+    http_method_names = ['patch', 'get', 'post', 'delete']
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return OutputRecipeSerializer
+        return CreateRecipeSerializer
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
