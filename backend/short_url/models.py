@@ -16,7 +16,7 @@ class ShortUrl(models.Model):
 
     class Meta:
         verbose_name = 'короткая ссылка'
-        verbose_name_plural = 'Короткие ссылки'
+        verbose_name_plural = 'Таблица ссылок'
         ordering = ('-created_at',)
         unique_together = ('full_url', 'short_url')
 
