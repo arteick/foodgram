@@ -5,7 +5,10 @@ cp -r /app/collected_static/. /backend_static/static/ && \
 python manage.py createsuperuser && \
 exit
 
---email t@t.ru --username arteic --first_name arteic --last_name arteic 
+--email t@t.ru --username arteic --first_name arteic --last_name arteic
+
+
+cd ../postman_collection/ && bash clear_db.sh && cd ../backend/ && python manage.py runserver
 
 
 python manage.py makemigrations && \
@@ -16,26 +19,36 @@ python manage.py createsuperuser --email t@t.ru --username arteic && \
 exit
 
 
-python manage.py makemigrations && \
-python manage.py migrate && \
-python manage.py runserver
+
+class CustomUpdateModelMixin(object):
+    """
+    Объект всегда может быть обновлён только частично
+    """
+    def update(self, request, *args, **kwargs):
+        serializer = kwargs.pop('serializer', None)
+        instance = self.get_object()
+        if not serializer:
+            serializer = self.get_serializer_class()
+        serializer = serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        serializer.save()
 
 
 
-    location docs/ {
-        alias /static/docs/;
-        try_files $uri $uri/redoc.html;
-    }
-
-
-    path('users/me/avatar/', UserViewSet.as_view(
-        {'put': 'add_avatar', 'delete': 'add_avatar'}
-    )),
-
-
-    username = models.CharField(
-        'Никнейм',
-        max_length=150,
-        unique=True,
-        validators=[UnicodeUsernameValidator],
-    )
+                constraints = [
+            models.CheckConstraint(
+                check=~models.Q(subscriber=models.F('user')),
+                name='subscribe_yourself_constraint',
+            )
+        ]

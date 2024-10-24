@@ -1,12 +1,14 @@
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
-from utils.mixins import CustomUpdateModelMixin
 
-
-class UserUpdateModelMixin(CustomUpdateModelMixin):
+class PartialUpdateUserMixin:
+    """
+    Миксин обновления объекта модели пользователя.
+    Всегда обновляет модель частично.
+    """
     def update(self, request, *args, **kwargs):
-        instance = self.get_request_user()
+        instance = request.user
         serializer = self.get_serializer(
             instance, data=request.data, partial=True
         )
@@ -17,3 +19,9 @@ class UserUpdateModelMixin(CustomUpdateModelMixin):
             instance._prefetched_objects_cache = {}
 
         return Response(serializer.data, status=HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        serializer.save()

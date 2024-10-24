@@ -1,12 +1,13 @@
 import re
 
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers, status
 
-from .models import Subscription
+import recipes.serializers
+from recipes.models import Recipe
+from users.models import Subscription
 
 User = get_user_model()
 
@@ -44,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if not user.is_anonymous:
             return Subscription.objects.filter(
-                user=user, subscriber=obj
+                user=user, following=obj
             ).exists()
         return False
 
@@ -74,15 +75,66 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Cериализатор для подписок"""
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Subscription
-        fields = ('id', 'user', 'subscriber')
-        read_only_fields = ('user', 'subscriber')
+        fields = ('user', 'following')
+        read_only_fields = ('user', 'following')
 
     def validate(self, data):
-        if self.context.get('request').user == self.context.get('user'):
+        user = self.context.get('request').user
+        following = self.context.get('following')
+        if user == following:
             raise serializers.ValidationError(
-                'Нельзя подписаться на самого себя!',
+                {'following: ''Нельзя подписаться на самого себя!'},
+            )
+        if Subscription.objects.filter(
+            user=user, following=following
+        ).exists():
+            raise serializers.ValidationError(
+                {'following': 'Вы уже подписаны на данного пользователя'},
             )
         return data
+
+    def to_representation(self, instance):
+        return SubscriptionOutputSerializer(
+            instance.following,
+            context=self.context
+        ).data
+
+
+class SubscriptionOutputSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода подписок"""
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'avatar', 'email', 'username', 'first_name',
+                  'last_name', 'recipes', 'recipes_count', 'is_subscribed')
+
+    def get_recipes(self, obj):
+        limit = self.context.get('request').GET.get('recipes_limit')
+        if not limit:
+            self.context.get('request').POST.get('recipes_limit')
+        recipes_query = obj.recipes.all()
+        if limit:
+            recipes_query = recipes_query[:int(limit)]
+        return recipes.serializers.RecipeShortSerializer(
+            recipes_query, many=True, context=self.context
+        ).data
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(
+            author=obj.id
+        ).count()
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        if not user.is_anonymous:
+            return Subscription.objects.filter(
+                user=user, following=obj
+            ).exists()
+        return False

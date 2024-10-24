@@ -140,3 +140,6 @@ dmypy.json
 
 static/
 media/
+
+# my files
+cmd_commands.txt

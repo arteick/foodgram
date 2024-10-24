@@ -1,15 +1,15 @@
 from django.contrib.auth import get_user_model
+from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from utils.pagination import PageNumberAndLimit
 
-from .mixins import UserUpdateModelMixin
+from .mixins import PartialUpdateUserMixin
 from .models import Subscription
 from .serializers import (AvatarSerializer, CustomUserCreateSerializer,
                           SubscriptionSerializer, UserSerializer)
@@ -17,7 +17,7 @@ from .serializers import (AvatarSerializer, CustomUserCreateSerializer,
 User = get_user_model()
 
 
-class UserViewSet(UserUpdateModelMixin,
+class UserViewSet(PartialUpdateUserMixin,
                   mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   mixins.DestroyModelMixin,
@@ -29,20 +29,22 @@ class UserViewSet(UserUpdateModelMixin,
     pagination_class = PageNumberAndLimit
     http_method_names = ['put', 'get', 'post', 'delete']
 
-    def get_request_user(self):
-        queryset = self.get_queryset()
-        return get_object_or_404(queryset, pk=self.request.user.id)
+    def get_serializer_class(self):
+        if self.action == 'add_avatar' and self.request.method != 'DELETE':
+            return AvatarSerializer
+        if self.action == 'create':
+            return CustomUserCreateSerializer
+        return UserSerializer
 
     @action(
         methods=['get'],
         detail=False,
         permission_classes=[IsAuthenticated],
-        pagination_class=None,
     )
     def me(self, request):
         """Получения объекта пользователя, сделавшего запрос."""
         serializer = UserSerializer(
-            instance=self.get_request_user(), context={'request': request}
+            instance=request.user, context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -50,7 +52,6 @@ class UserViewSet(UserUpdateModelMixin,
         methods=['put', 'delete', 'get'],
         detail=False,
         permission_classes=[IsAuthenticated],
-        pagination_class=None,
         url_path='me/avatar'
     )
     def add_avatar(self, request):
@@ -64,12 +65,12 @@ class UserViewSet(UserUpdateModelMixin,
             return Response(status=status.HTTP_204_NO_CONTENT)
         if self.request.method == 'GET':
             serializer = self.get_serializer(
-                instance=self.get_request_user(), data=request.data,
+                instance=request.user, data=request.data,
                 partial=True
             )
             serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK) 
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         ['post'],
@@ -87,55 +88,78 @@ class UserViewSet(UserUpdateModelMixin,
         self.request.user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def get_serializer_class(self):
-        if self.action == 'add_avatar' and self.request.method != 'DELETE':
-            return AvatarSerializer
-        if self.action == 'create':
-            return CustomUserCreateSerializer
-        return UserSerializer
+    @action(
+        methods=['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+        pagination_class=PageNumberAndLimit,
+    )
+    def subscriptions(self, request):
+        qs = Subscription.objects.all().filter(user=self.request.user)
+        page = self.paginate_queryset(qs)
+        if page:
+            serializer = SubscriptionSerializer(
+                page,
+                many=True,
+                context={'request': request},
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = SubscriptionSerializer(
+            page,
+            many=True,
+            context={'request': request},
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_object(self):
+        return super().get_object()
 
 
-class SubscriptionViewSet(mixins.CreateModelMixin,
-                          mixins.DestroyModelMixin,
+class SubscriptionViewSet(mixins.DestroyModelMixin,
+                          mixins.CreateModelMixin,
                           viewsets.GenericViewSet):
     """Подписки: POST, DELETE."""
-
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = PageNumberAndLimit
-    lookup_field = 'user_id'
 
-    def get_user(self):
+    def get_following(self):
         return get_object_or_404(
             User, id=self.kwargs.get('user_id')
         )
 
-    def create(self, request, *args, **kwargs): # Можно это убрать и переписать методы сериализатора
-        user = self.get_user()
-        serializer = self.get_serializer(
-            data=request.data, context={'request': request, 'user': user}
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        serializer = UserSerializer(
-            instance=user, context={'request': request}
-        )
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({
+            'request': self.request,
+            'following': self.get_following()
+        })
+        return context
 
     def perform_create(self, serializer):
         serializer.save(
-            subscriber=self.request.user,
-            user=self.get_user()
+            user=self.request.user,
+            following=self.get_following()
         )
 
-    def perform_destroy(self, instance):
-        instance = get_object_or_404(
-            Subscription,
-            subscriber=self.request.user,
-            user=self.get_user()
-        )
-        instance.delete()
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except Http404:
+            self.get_following()
+            return Response(
+                {'detail': "Ошибка подписки"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = get_object_or_404(
+            queryset,
+            user=self.request.user,
+            following=self.get_following())
+        self.check_object_permissions(self.request, obj)
+
+        return obj

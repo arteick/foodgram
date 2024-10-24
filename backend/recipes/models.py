@@ -1,6 +1,5 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from users.models import CustomUser
 
@@ -122,6 +121,8 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Рецепты и их ингридиенты'
+        verbose_name_plural = 'Рецепты и их ингридиенты'
         unique_together = ('recipe', 'ingredient')
         default_related_name = 'ingredients_in_recipe'
 
@@ -140,6 +141,7 @@ class Favorite(models.Model):
         verbose_name = 'избранное'
         verbose_name_plural = 'Избранное'
         default_related_name = 'favorites'
+        unique_together = ('recipe', 'user')
 
     def __str__(self):
         return self.recipe
@@ -158,7 +160,8 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'корзина'
         verbose_name_plural = 'Корзина'
-        default_related_name = 'in_cart'
+        default_related_name = 'shopping_cart'
+        unique_together = ('recipe', 'user')
 
     def __str__(self):
-        return self.recipe
+        return f'{self.user} -> {self.recipe}'

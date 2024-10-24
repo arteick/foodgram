@@ -1,23 +1,22 @@
-from django_filters.filters import BooleanFilter, CharFilter, NumberFilter
+from django_filters.filters import (BooleanFilter, CharFilter,
+                                    ModelMultipleChoiceFilter, NumberFilter)
 from django_filters.rest_framework import FilterSet
 
-from recipes.models import Ingredient, Recipe
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class RecipeFilter(FilterSet):
-    """
-    Фильтр для рецптов.
-    Доступные параметры:
-    is_favorited - 0/1,
-    is_in_shopping_cart - 0/1,
-    author - id автора,
-    tags - слаги тегов,
-    """
+    """Фильтр для рецптов"""
 
-    is_favorited = BooleanFilter(field_name='is_favorited')
-    is_in_shopping_cart = BooleanFilter(field_name='is_in_shopping_cart')
+    is_in_shopping_cart = NumberFilter(
+        field_name='is_in_shopping_cart')
+    is_favorited = NumberFilter(
+        field_name='is_in_shopping_cart')
     author = NumberFilter(field_name='author__id')
-    tags = CharFilter(field_name='tags__slug')
+    tags = ModelMultipleChoiceFilter(
+        queryset=Tag.objects.all(),
+        field_name='tags__slug',
+        to_field_name='slug')
 
     class Meta:
         model = Recipe

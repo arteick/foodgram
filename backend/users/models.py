@@ -37,11 +37,11 @@ class CustomUser(AbstractUser):
 
 
 class Subscription(models.Model):
-    subscriber = models.ForeignKey(
+    user = models.ForeignKey(
         CustomUser, verbose_name='Кто подписан',
         on_delete=models.CASCADE, related_name='subscriptions'
     )
-    user = models.ForeignKey(
+    following = models.ForeignKey(
         CustomUser, verbose_name='На кого подписан',
         on_delete=models.CASCADE,
     )
@@ -49,13 +49,13 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'подписка'
         verbose_name_plural = 'Подписки'
-        unique_together = ('subscriber', 'user')
+        unique_together = ('following', 'user')
         constraints = [
             models.CheckConstraint(
-                check=~models.Q(subscriber=models.F('user')),
+                check=~models.Q(user=models.F('following')),
                 name='subscribe_yourself_constraint',
             )
         ]
 
     def __str__(self):
-        return f'{self.subscriber} подписан на {self.user}'
+        return f'{self.user} to {self.following}'
