@@ -1,10 +1,19 @@
 import json
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.core.management.base import BaseCommand
 
-from recipes.models import Ingredient, Tag
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from users.models import Subscription
 
-classnames = {"Ingredient": Ingredient, "Tag": Tag}
+User = get_user_model()
+
+classnames = {
+    "Ingredient": Ingredient, "Tag": Tag,
+    "User": User, "Subscription": Subscription, "Recipe": Recipe,
+    "Favorite": Favorite, "Cart": ShoppingCart
+}
 
 
 class Command(BaseCommand):
@@ -19,8 +28,12 @@ class Command(BaseCommand):
         filepath = kwargs.get('filepath')
         name = kwargs.get('classname').lower().capitalize()
         model = classnames.get(name)
+
         with open(filepath, 'r') as json_file:
             data = json.load(json_file)
-            for item in data:
-                instance = model(**item)
-                instance.save()
+            if model == User:
+                data['password'] = make_password(data['password'])
+            else:
+                for item in data:
+                    instance = model(**item)
+                    instance.save()

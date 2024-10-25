@@ -52,7 +52,8 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE
+        CustomUser, on_delete=models.CASCADE,
+        verbose_name='Автор'
     )
     name = models.CharField(
         verbose_name='Название рецепта',
@@ -102,8 +103,13 @@ class RecipeTag(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Теги в рецептах'
+        verbose_name_plural = 'Теги в рецептах'
         unique_together = ('recipe', 'tag')
         default_related_name = 'tags_in_recipe'
+
+    def __str__(self):
+        return f'{self.recipe} -> {self.tag}'
 
 
 class RecipeIngredient(models.Model):
@@ -126,6 +132,9 @@ class RecipeIngredient(models.Model):
         unique_together = ('recipe', 'ingredient')
         default_related_name = 'ingredients_in_recipe'
 
+    def __str__(self):
+        return f'{self.recipe} -> {self.ingredient}'
+
 
 class Favorite(models.Model):
     user = models.ForeignKey(
@@ -140,11 +149,11 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = 'избранное'
         verbose_name_plural = 'Избранное'
-        default_related_name = 'favorites'
+        default_related_name = 'favorite'
         unique_together = ('recipe', 'user')
 
     def __str__(self):
-        return self.recipe
+        return f'{self.user} -> {self.recipe}'
 
 
 class ShoppingCart(models.Model):

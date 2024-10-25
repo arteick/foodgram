@@ -14,3 +14,4 @@ class ShortUrlAdmin(admin.ModelAdmin):
     )
     search_fields = ('full_url', 'short_url')
     ordering = ('-created_at',)
+    empty_value_display = 'Не задано'

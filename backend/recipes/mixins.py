@@ -1,8 +1,9 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   UpdateModelMixin)
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 
 from .models import Recipe
 
@@ -50,7 +51,7 @@ class CreateDestroyMixin(CreateModelMixin, DestroyModelMixin):
         return obj
 
 
-class FullUpdateMixin:
+class FullUpdateMixin(UpdateModelMixin):
     """
     Миксин обновления объекта модели.
     Всегда обновляет модель только целиком.
@@ -67,9 +68,3 @@ class FullUpdateMixin:
             instance._prefetched_objects_cache = {}
 
         return Response(serializer.data, status=HTTP_200_OK)
-
-    def partial_update(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def perform_update(self, serializer):
-        serializer.save()

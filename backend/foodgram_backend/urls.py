@@ -9,7 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('s/<str:slug>/', RedirectUrl.as_view())
-    
+
 ]
 
 if settings.DEBUG:

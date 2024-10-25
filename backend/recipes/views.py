@@ -25,6 +25,22 @@ from .serializers import (CreateRecipeSerializer, FavoriteSerializer,
 User = get_user_model()
 
 
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """Теги: CRUD только для администратора, GET для всех"""
+    queryset = Tag.objects.all()
+    pagination_class = None
+    serializer_class = TagSerializer
+
+
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """Ингридиенты: CRUD только для администратора, GET для всех"""
+    queryset = Ingredient.objects.all()
+    pagination_class = None
+    serializer_class = IngredientSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngridientFilter
+
+
 class CartViewSet(CreateDestroyMixin,
                   viewsets.GenericViewSet):
     """Корзина: POST, DELETE"""
@@ -84,7 +100,7 @@ class RecipeViewSet(FullUpdateMixin,
 
         return recipes.annotate(
             is_favorited=Exists(favorite),
-            is_in_shopping_cart=Exists(shopping_cart)
+            is_in_shopping_cart=Exists(shopping_cart),
         )
 
     @action(
@@ -102,11 +118,12 @@ class RecipeViewSet(FullUpdateMixin,
         ).values('amount', 'ingredient__name', 'ingredient__measurement_unit')
         data = create_cart_txt(ingredients)
         response = HttpResponse(
-            data, content_type='text/plain',
-            status=status.HTTP_200_OK
-        )
-        response['Content-Disposition'] = (
-            'attachment; filename={0}'.format('Список покупок')
+            data,
+            status=status.HTTP_200_OK,
+            headers={
+                'Content-Type': 'text/plain',
+                'Content-Disposition': 'attachment; filename="shopping.txt"'
+            }
         )
         return response
 
@@ -136,19 +153,3 @@ class RecipeViewSet(FullUpdateMixin,
                 full_url=absolute_uri
             ).short_url
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
-
-
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Теги: CRUD только для администратора"""
-    queryset = Tag.objects.all()
-    pagination_class = None
-    serializer_class = TagSerializer
-
-
-class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Ингридиенты: CRUD только для администратора"""
-    queryset = Ingredient.objects.all()
-    pagination_class = None
-    serializer_class = IngredientSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = IngridientFilter

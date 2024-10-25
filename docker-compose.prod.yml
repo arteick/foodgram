@@ -15,7 +15,7 @@ services:
     depends_on:
       - db
     container_name: foodgram-back
-    build: backend/
+    image: arteic/foodgram_backend:latest
     env_file: .env
     volumes:
       - static:/backend_static
@@ -23,7 +23,7 @@ services:
 
   frontend:
     container_name: foodgram-front
-    build: frontend/
+    image: arteic/foodgram_frontend:latest 
     command: cp -r /app/result_build/. /static/
     volumes:
       - static:/static
@@ -33,7 +33,7 @@ services:
       - db
       - backend
     container_name: foodgram-proxy
-    build: nginx/
+    image: arteic/foodgram_gateway:latest 
     ports:
       - "8080:80"
     volumes:

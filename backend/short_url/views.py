@@ -14,4 +14,5 @@ class RedirectUrl(APIView):
             ShortUrl,
             short_url=request.build_absolute_uri()
         ).full_url
+        url = ''.join(url.split('get-link/')[0].split('api/'))
         return HttpResponseRedirect(redirect_to=url)
