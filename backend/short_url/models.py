@@ -1,5 +1,4 @@
 from django.db import models
-from utils.services import shorten_url
 
 
 class ShortUrl(models.Model):
