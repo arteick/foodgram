@@ -1,4 +1,4 @@
-![status workflow](https://github.com/arteick/Foodgram Main/actions/workflows/main.yml/badge.svg)
+![status workflow](https://github.com/arteick/foodgram/actions/workflows/main.yml/badge.svg)
 # Foodgram
 
 ## Описание проекта
