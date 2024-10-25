@@ -2,3 +2,11 @@ sudo docker compose exec backend python manage.py migrate && \
 sudo docker compose exec backend python manage.py loaddata db.json && \
 sudo docker compose exec backend python manage.py collectstatic && \
 sudo docker compose exec backend cp -r /app/collected_static/. /backend_static/static/
+
+
+cd frontend && \
+sudo docker build -t arteic/foogdram_frontend . && \
+cd ../backend && \
+sudo docker build -t arteic/foogdram_backend . && \
+cd ../nginx && \
+sudo docker build -t arteic/foogdram_gateway .

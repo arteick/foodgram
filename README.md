@@ -1,4 +1,4 @@
-![status workflow](https://github.com/arteick/Foodgram_Workflow/actions/workflows/main.yml/badge.svg)
+![status workflow](https://github.com/arteick/Foodgram Main/actions/workflows/main.yml/badge.svg)
 # Foodgram
 
 ## Описание проекта
@@ -21,8 +21,8 @@ cd frontend
 docker build -t username/foogdram_frontend .
 cd ../backend
 docker build -t username/foogdram_backend .
-cd ../infra
-docker build -t username/foogdram_gateway . 
+cd ../nginx
+docker build -t username/foogdram_gateway .
 ```
 
 * Загрузите образы на DockerHub:
