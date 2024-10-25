@@ -1,5 +1,4 @@
 from django.utils.crypto import get_random_string
-
 from utils.constants import RANDOM_STRING_CHARS, TOKEN_LENGTH
 
 

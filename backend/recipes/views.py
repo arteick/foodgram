@@ -7,7 +7,6 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
-
 from short_url.models import ShortUrl
 from short_url.serializers import ShortUrlSerializer
 from utils.services import create_cart_txt, shorten_url
