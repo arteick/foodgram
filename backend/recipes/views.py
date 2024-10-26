@@ -7,12 +7,13 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
+
 from short_url.models import ShortUrl
 from short_url.serializers import ShortUrlSerializer
-from utils.services import create_cart_txt, shorten_url
+from utils.services import create_cart_txt, post_delete_instance, shorten_url
 
 from .filters import IngridientFilter, RecipeFilter
-from .mixins import CreateDestroyMixin, FullUpdateMixin
+from .mixins import FullUpdateMixin
 from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Tag)
 from .pagination import RecipePageNumberLimit
@@ -38,22 +39,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngridientFilter
-
-
-class CartViewSet(CreateDestroyMixin,
-                  viewsets.GenericViewSet):
-    """Корзина: POST, DELETE"""
-    queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
-    permission_classes = (IsAuthenticated,)
-
-
-class FavoriteViewSet(CreateDestroyMixin,
-                      viewsets.GenericViewSet):
-    """Избранное: POST, DELETE"""
-    queryset = Favorite.objects.all()
-    serializer_class = FavoriteSerializer
-    permission_classes = (IsAuthenticated,)
 
 
 class RecipeViewSet(FullUpdateMixin,
@@ -103,11 +88,39 @@ class RecipeViewSet(FullUpdateMixin,
         )
 
     @action(
+        ['post', 'delete'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, pk=None):
+        """Добавить/удавлить рецепт из корзины"""
+        return post_delete_instance(
+            ShoppingCartSerializer,
+            ShoppingCart,
+            request,
+            pk
+        )
+
+    @action(
+        ['post', 'delete'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, request, pk):
+        return post_delete_instance(
+            FavoriteSerializer,
+            Favorite,
+            request,
+            pk
+        )
+
+    @action(
         ['get'],
         detail=False,
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
+        """Скачать корзину"""
         recipe_ids = [
             item['recipe_id']
             for item in request.user.shopping_cart.values('recipe_id')
@@ -132,6 +145,7 @@ class RecipeViewSet(FullUpdateMixin,
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
+        """Получить короткую ссылку на рецепт"""
         absolute_uri = request.build_absolute_uri()
         domain = absolute_uri.split('api/')[0]
         short_link = domain + 's/' + shorten_url() + '/'
