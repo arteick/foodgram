@@ -10,7 +10,7 @@ class ShortUrl(models.Model):
     short_url = models.CharField(
         'Короткая ссылка',
         unique=True, db_index=True,
-        max_length=20, blank=True
+        max_length=250, blank=True
     )
     is_active = models.BooleanField(
         'Активна', default=True)

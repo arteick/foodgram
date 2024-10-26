@@ -1,0 +1,42 @@
+[
+    {
+        "email": "user1@example.com",
+        "username": "user_one",
+        "first_name": "Alice",
+        "last_name": "Smith",
+        "avatar": null,
+        "password": "A1b2C3d4!eF"
+    },
+    {
+        "email": "user2@example.com",
+        "username": "user_two",
+        "first_name": "Bob",
+        "last_name": "Johnson",
+        "avatar": null,
+        "password": "G5h6I7j8@kL"
+    },
+    {
+        "email": "user3@example.com",
+        "username": "user_three",
+        "first_name": "Charlie",
+        "last_name": "Williams",
+        "avatar": null,
+        "password": "M9n0O1p2#qR"
+    },
+    {
+        "email": "user4@example.com",
+        "username": "user_four",
+        "first_name": "David",
+        "last_name": "Brown",
+        "avatar": null,
+        "password": "S3t4U5v6%wX"
+    },
+    {
+        "email": "user5@example.com",
+        "username": "user_five",
+        "first_name": "Eva",
+        "last_name": "Davis",
+        "avatar": null,
+        "password": "Y7z8A9b0^cD"
+    }
+]

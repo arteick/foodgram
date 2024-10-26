@@ -1,5 +1,6 @@
 ![status workflow](https://github.com/arteick/foodgram/actions/workflows/main.yml/badge.svg)
 # Foodgram
+https://ilovefood.zapto.org
 
 ## Описание проекта
 

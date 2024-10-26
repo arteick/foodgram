@@ -142,6 +142,6 @@ static/
 media/
 
 # my files
-cmd_commands.txt
+commands.txt
 recipes/management/
 recipes_photo/

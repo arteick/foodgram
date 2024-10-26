@@ -1,5 +1,4 @@
 sudo docker compose exec backend python manage.py migrate && \
-sudo docker compose exec backend python manage.py loaddata db.json && \
 sudo docker compose exec backend python manage.py collectstatic && \
 sudo docker compose exec backend cp -r /app/collected_static/. /backend_static/static/
 
@@ -10,3 +9,24 @@ cd ../backend && \
 sudo docker build -t arteic/foogdram_backend . && \
 cd ../nginx && \
 sudo docker build -t arteic/foogdram_gateway .
+
+158.160.69.132 ilovefood.zapto.org
+
+
+python manage.py import_json data/ingredients.json ingredient && python manage.py import_json data/tags.json tag
+
+python manage.py import_json data/recipes.json recipe && python manage.py import_json data/favorite.json favorite && \
+python manage.py import_json data/shopping_cart.json cart && python manage.py import_json data/subscriptions.json subscription && \
+python manage.py import_json data/recipeingredient.json ri && python manage.py import_json data/recipetag.json rt
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'django'),
+        'USER': os.getenv('POSTGRES_USER', 'django'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', 5432)
+    }
+}
