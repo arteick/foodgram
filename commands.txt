@@ -4,11 +4,11 @@ sudo docker compose exec backend cp -r /app/collected_static/. /backend_static/s
 
 
 cd frontend && \
-sudo docker build -t arteic/foogdram_frontend . && \
+sudo docker build -t arteic/foodgram_frontend:latest . && \
 cd ../backend && \
-sudo docker build -t arteic/foogdram_backend . && \
+sudo docker build -t arteic/foodgram_backend:latest . && \
 cd ../nginx && \
-sudo docker build -t arteic/foogdram_gateway .
+sudo docker build -t arteic/foodgram_gateway:latest .
 
 158.160.69.132 ilovefood.zapto.org
 

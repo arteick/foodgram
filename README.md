@@ -19,11 +19,11 @@ _Далее идут команды, которые можно выполнпи�
 
 ```
 cd frontend
-docker build -t username/foogdram_frontend .
+docker build -t username/foodgram_frontend .
 cd ../backend
-docker build -t username/foogdram_backend .
+docker build -t username/foodgram_backend .
 cd ../nginx
-docker build -t username/foogdram_gateway .
+docker build -t username/foodgram_gateway .
 ```
 
 * Загрузите образы на DockerHub:
