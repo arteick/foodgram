@@ -139,9 +139,7 @@ dmypy.json
 .vscode
 
 static/
-media/
 
 # my files
-commands.txt
-recipes/management/
+/commands.txt
 recipes_photo/
