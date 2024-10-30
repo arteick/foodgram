@@ -11,30 +11,24 @@ from utils.pagination import PageNumberAndLimit
 
 from .mixins import PartialUpdateUserMixin
 from .models import Subscription
-from .serializers import (AvatarSerializer, CustomUserCreateSerializer,
-                          SubscriptionSerializer, UserSerializer)
+from djoser.views import UserViewSet
+from .serializers import (AvatarSerializer, SubscriptionSerializer,
+                          UserSerializer)
 
 User = get_user_model()
 
 
-class UserViewSet(PartialUpdateUserMixin,
-                  mixins.ListModelMixin,
-                  mixins.CreateModelMixin,
-                  mixins.DestroyModelMixin,
-                  mixins.RetrieveModelMixin,
-                  viewsets.GenericViewSet):
+class CustomUserViewSet(PartialUpdateUserMixin,
+                        UserViewSet):
     """Пользователи: CRUD."""
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     pagination_class = PageNumberAndLimit
     http_method_names = ['put', 'get', 'post', 'delete']
 
     def get_serializer_class(self):
         if self.action == 'add_avatar' and self.request.method != 'DELETE':
             return AvatarSerializer
-        if self.action == 'create':
-            return CustomUserCreateSerializer
-        return UserSerializer
+        return super().get_serializer_class()
 
     @action(
         methods=['get'],
@@ -63,30 +57,11 @@ class UserViewSet(PartialUpdateUserMixin,
             self.request.data['avatar'] = None
             self.partial_update(request)
             return Response(status=status.HTTP_204_NO_CONTENT)
+
         if self.request.method == 'GET':
-            serializer = self.get_serializer(
-                instance=request.user, data=request.data,
-                partial=True
-            )
-            serializer.is_valid(raise_exception=True)
+            serializer = self.get_serializer(instance=request.user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(
-        ['post'],
-        detail=False,
-        permission_classes=[IsAuthenticated],
-    )
-    def set_password(self, request):
-        """Изменение пароля"""
-        serializer = SetPasswordSerializer(
-            data=request.data, context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-
-        self.request.user.set_password(serializer.data["new_password"])
-        self.request.user.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         methods=['get'],
@@ -111,9 +86,6 @@ class UserViewSet(PartialUpdateUserMixin,
             context={'request': request},
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def get_object(self):
-        return super().get_object()
 
 
 class SubscriptionViewSet(mixins.DestroyModelMixin,

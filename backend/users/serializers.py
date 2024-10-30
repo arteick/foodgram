@@ -20,12 +20,12 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = User
         fields = ('avatar',)
 
-    def validate(self, data):
-        if data.get('avatar') in ("", None):
+    def validate(self, attrs):
+        if attrs.get('avatar') == '' or not attrs.get('avatar'):
             raise serializers.ValidationError(
                 code=status.HTTP_400_BAD_REQUEST
             )
-        return data
+        return attrs
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -50,29 +50,6 @@ class UserSerializer(serializers.ModelSerializer):
         return False
 
 
-class CustomUserCreateSerializer(UserCreateSerializer):
-    """
-    Сериализатор для создания пользователей на основе сериализатора
-    библиотеки djoser
-    """
-
-    class Meta:
-        model = User
-        fields = (
-            'id', 'email', 'username', 'first_name',
-            'last_name', 'password'
-        )
-
-    def validate_username(self, value):
-        """Проверка поля "username" на соответствие шаблону."""
-        pattern = r'^[\w.@+-]+\Z'
-        if not re.match(pattern, value):
-            raise serializers.ValidationError(
-                {'username': 'Имя пользователя содержит запрещённые символы.'},
-            )
-        return value
-
-
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Cериализатор для подписок"""
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -87,7 +64,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         following = self.context.get('following')
         if user == following:
             raise serializers.ValidationError(
-                {'following: ''Нельзя подписаться на самого себя!'},
+                {'following': 'Нельзя подписаться на самого себя!'},
             )
         if Subscription.objects.filter(
             user=user, following=following

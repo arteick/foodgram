@@ -1,5 +1,4 @@
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 
@@ -9,26 +8,18 @@ class CustomUser(AbstractUser):
         unique=True,
         max_length=254
     )
-    username = models.CharField(
-        'Никнейм',
-        max_length=150,
-        unique=True,
-        validators=[UnicodeUsernameValidator],
-    )
     first_name = models.CharField('Имя', max_length=150)
     last_name = models.CharField('Фамилия', max_length=150)
     avatar = models.ImageField(
         verbose_name='Фото профиля',
         upload_to=('users/images/'),
-        blank=True,
         null=True,
         default=None
     )
     password = models.CharField('Пароль', max_length=128)
 
-    EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'password']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         verbose_name = 'пользователь'
