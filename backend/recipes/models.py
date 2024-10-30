@@ -4,6 +4,27 @@ from django.db import models
 from users.models import CustomUser
 
 
+class UserRecipeModel(models.Model):
+    """
+    Абстрактная модель. Поля: user, recipe.
+    Используется для создания моделей: Favorite, ShoppingCart
+    """
+    user = models.ForeignKey(
+        CustomUser, verbose_name='Кто добавил',
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        'Recipe', verbose_name='Рецепт',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return f'{self.user} -> {self.recipe}'
+
+
 class Tag(models.Model):
     name = models.CharField(
         verbose_name='Название тега',
@@ -136,15 +157,7 @@ class RecipeIngredient(models.Model):
         return f'{self.recipe} -> {self.ingredient}'
 
 
-class Favorite(models.Model):
-    user = models.ForeignKey(
-        CustomUser, verbose_name='Кто добавил в избранное',
-        on_delete=models.CASCADE
-    )
-    recipe = models.ForeignKey(
-        Recipe, verbose_name='Рецепт в избранном',
-        on_delete=models.CASCADE
-    )
+class Favorite(UserRecipeModel):
 
     class Meta:
         verbose_name = 'избранное'
@@ -152,25 +165,11 @@ class Favorite(models.Model):
         default_related_name = 'favorite'
         unique_together = ('recipe', 'user')
 
-    def __str__(self):
-        return f'{self.user} -> {self.recipe}'
 
-
-class ShoppingCart(models.Model):
-    user = models.ForeignKey(
-        CustomUser, verbose_name='Кто добавил в корзину',
-        on_delete=models.CASCADE
-    )
-    recipe = models.ForeignKey(
-        Recipe, verbose_name='Рецепт в корзине',
-        on_delete=models.CASCADE
-    )
+class ShoppingCart(UserRecipeModel):
 
     class Meta:
         verbose_name = 'корзина'
         verbose_name_plural = 'Корзина'
         default_related_name = 'shopping_cart'
         unique_together = ('recipe', 'user')
-
-    def __str__(self):
-        return f'{self.user} -> {self.recipe}'
