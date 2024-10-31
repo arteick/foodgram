@@ -1,13 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Exists, OuterRef
-from django.http import HttpResponse
+from django.db.models import Exists, OuterRef, Sum
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
-
 from short_url.models import ShortUrl
 from short_url.serializers import ShortUrlSerializer
 from utils.services import create_cart_txt, post_delete_instance, shorten_url
@@ -121,23 +119,15 @@ class RecipeViewSet(FullUpdateMixin,
     )
     def download_shopping_cart(self, request):
         """Скачать корзину"""
-        recipe_ids = [
-            item['recipe_id']
-            for item in request.user.shopping_cart.values('recipe_id')
-        ]
+        recipes = request.user.shopping_cart.values('recipe')
         ingredients = RecipeIngredient.objects.filter(
-            recipe__in=recipe_ids
-        ).values('amount', 'ingredient__name', 'ingredient__measurement_unit')
-        data = create_cart_txt(ingredients)
-        response = HttpResponse(
-            data,
-            status=status.HTTP_200_OK,
-            headers={
-                'Content-Type': 'text/plain',
-                'Content-Disposition': 'attachment; filename="shopping.txt"'
-            }
+            recipe__in=recipes
+        ).values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(
+            amount=Sum('amount')
         )
-        return response
+        return create_cart_txt(ingredients)
 
     @action(
         ['get'],

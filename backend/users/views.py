@@ -2,16 +2,15 @@ from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from djoser.serializers import SetPasswordSerializer
+from djoser.views import UserViewSet
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from utils.pagination import PageNumberAndLimit
 
 from .mixins import PartialUpdateUserMixin
 from .models import Subscription
-from djoser.views import UserViewSet
 from .serializers import (AvatarSerializer, SubscriptionSerializer,
                           UserSerializer)
 
