@@ -20,7 +20,7 @@ def create_cart_txt(content: list):
     data = []
     for item in content:
         name = item.get('ingredient__name')
-        amount = item.get('amount')
+        amount = item.get('total_amount')
         measurement_unit = item.get('ingredient__measurement_unit')
         data.append(f'{name} -> {amount} {measurement_unit}')
     data = '\n'.join(data)

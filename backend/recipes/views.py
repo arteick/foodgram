@@ -125,7 +125,7 @@ class RecipeViewSet(FullUpdateMixin,
         ).values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(
-            amount=Sum('amount')
+            total_amount=Sum('amount')
         )
         return create_cart_txt(ingredients)
 
